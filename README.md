@@ -171,3 +171,4 @@ AuthMiddleware::authorize($payload, ['admin', 'teacher']); // role check
 | Attendance  | GET/POST /api/attendance                      |
 | Grades      | GET/POST /api/grades                          |
 | Timetable   | GET/POST /api/timetable                       |
+# php_crud
