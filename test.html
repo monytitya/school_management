@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Student Form</title>
+</head>
+
+<body>
+    <h2>Add Student</h2>
+    <form action="test.php?action=create" method="POST">
+        First Name: <input type="text" name="firstName" required><br>
+        Last Name: <input type="text" name="lastName" required><br>
+        Grade: <input type="text" name="grade"><br>
+        Email: <input type="email" name="email" required><br>
+        DOB: <input type="date" name="dob"><br>
+        Phone: <input type="text" name="phone"><br>
+        Address: <textarea name="address"></textarea><br>
+        <button type="submit">Add Student</button>
+    </form>
+    <br>
+    <a href="test.php?action=read">View Students</a>
+</body>
+
+</html>
