@@ -1,12 +1,29 @@
 <?php
 
-require_once __DIR__ . '/../controllers/AuthController.php';
-
-class Router {
-
+class Router
+{
     private array $routes = [];
 
-    public function add(string $method, string $path, callable $handler): void {
+
+    public function get(string $path, $handler): void
+    {
+        $this->add('GET', $path, $handler);
+    }
+    public function post(string $path, $handler): void
+    {
+        $this->add('POST', $path, $handler);
+    }
+    public function put(string $path, $handler): void
+    {
+        $this->add('PUT', $path, $handler);
+    }
+    public function delete(string $path, $handler): void
+    {
+        $this->add('DELETE', $path, $handler);
+    }
+
+    public function add(string $method, string $path, $handler): void
+    {
         $this->routes[] = [
             'method'  => strtoupper($method),
             'path'    => $path,
@@ -14,30 +31,40 @@ class Router {
         ];
     }
 
-    public function dispatch(string $method, string $uri): void {
-        // Strip query string
+    public function dispatch(string $method, string $uri): void
+    {
         $path = parse_url($uri, PHP_URL_PATH);
-        // Remove base prefix /api
         $path = preg_replace('#^/api#', '', $path);
 
         foreach ($this->routes as $route) {
             $pattern = $this->toRegex($route['path']);
-            if ($route['method'] === $method && preg_match($pattern, $path, $matches)) {
-                // Extract named params
+
+            if ($route['method'] === strtoupper($method) && preg_match($pattern, $path, $matches)) {
+
                 array_shift($matches);
-                call_user_func_array($route['handler'], $matches);
+
+                if (is_callable($route['handler'])) {
+                    call_user_func_array($route['handler'], $matches);
+                }
                 return;
             }
         }
-
-        http_response_code(404);
-        header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => "Route $method $path not found."]);
+        $this->sendNotFound($method, $path);
     }
 
-    // Convert /users/:id  →  regex
-    private function toRegex(string $path): string {
+    private function toRegex(string $path): string
+    {
         $pattern = preg_replace('#:([a-zA-Z_]+)#', '([^/]+)', $path);
         return '#^' . $pattern . '$#';
+    }
+
+    private function sendNotFound($method, $path): void
+    {
+        http_response_code(404);
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => false,
+            'message' => "Route $method $path not found."
+        ]);
     }
 }

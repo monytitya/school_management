@@ -17,7 +17,6 @@ class TeacherController
         $this->userModel    = new UserModel();
     }
 
-
     public function index(): void
     {
         $user = AuthMiddleware::authenticate();
@@ -116,6 +115,11 @@ class TeacherController
 
     private function getBody(): array
     {
-        return json_decode(file_get_contents('php://input'), true) ?? [];
+        if (!empty($_POST)) return $_POST;
+        $raw = file_get_contents('php://input');
+        $json = json_decode($raw, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($json)) return $json;
+        parse_str($raw, $parsed);
+        return is_array($parsed) ? $parsed : [];
     }
 }

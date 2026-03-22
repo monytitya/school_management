@@ -5,18 +5,32 @@ require_once __DIR__ . '/../models/StudentModel.php';
 require_once __DIR__ . '/../helpers/response.php';
 require_once __DIR__ . '/../middleware/auth.php';
 
-class GradeController {
+class GradeController
+{
 
     private GradeModel   $gradeModel;
     private StudentModel $studentModel;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->gradeModel   = new GradeModel();
         $this->studentModel = new StudentModel();
     }
 
-    // GET /api/grades/student/:id?term=Term+1
-    public function byStudent(string $id): void {
+    public function show(string $id): void
+    {
+        $user = AuthMiddleware::authenticate();
+        AuthMiddleware::authorize($user, ['admin', 'teacher']);
+
+        $grade = $this->gradeModel->findById((int)$id);
+        if (!$grade) {
+            Response::notFound('Grade not found.');
+        }
+        Response::success($grade, 'Grade retrieved.');
+    }
+
+    public function byStudent(string $id): void
+    {
         $user = AuthMiddleware::authenticate();
         AuthMiddleware::authorize($user, ['admin', 'teacher', 'parent', 'student']);
 
@@ -29,8 +43,8 @@ class GradeController {
         Response::success($grades, 'Grades retrieved.');
     }
 
-    // GET /api/grades/subject/:id?term=Term+1
-    public function bySubject(string $id): void {
+    public function bySubject(string $id): void
+    {
         $user = AuthMiddleware::authenticate();
         AuthMiddleware::authorize($user, ['admin', 'teacher']);
 
@@ -40,8 +54,8 @@ class GradeController {
         Response::success($grades, 'Subject grades retrieved.');
     }
 
-    // GET /api/grades/report-card/:studentId?term=Term+1
-    public function reportCard(string $studentId): void {
+    public function reportCard(string $studentId): void
+    {
         $user = AuthMiddleware::authenticate();
         AuthMiddleware::authorize($user, ['admin', 'teacher', 'parent', 'student']);
 
@@ -66,8 +80,8 @@ class GradeController {
         ], 'Report card retrieved.');
     }
 
-    // POST /api/grades
-    public function store(): void {
+    public function store(): void
+    {
         $user = AuthMiddleware::authenticate();
         AuthMiddleware::authorize($user, ['admin', 'teacher']);
 
@@ -93,8 +107,8 @@ class GradeController {
         Response::success($grade, 'Grade recorded.', 201);
     }
 
-    // PUT /api/grades/:id
-    public function update(string $id): void {
+    public function update(string $id): void
+    {
         $user = AuthMiddleware::authenticate();
         AuthMiddleware::authorize($user, ['admin', 'teacher']);
 
@@ -110,8 +124,9 @@ class GradeController {
         Response::success($this->gradeModel->findById((int)$id), 'Grade updated.');
     }
 
-    // DELETE /api/grades/:id
-    public function destroy(string $id): void {
+
+    public function destroy(string $id): void
+    {
         $user = AuthMiddleware::authenticate();
         AuthMiddleware::authorize($user, ['admin', 'teacher']);
 
@@ -122,8 +137,8 @@ class GradeController {
         Response::success(null, 'Grade deleted.');
     }
 
-    // GET /api/grades/class-average/:subjectId?term=Term+1
-    public function classAverage(string $subjectId): void {
+    public function classAverage(string $subjectId): void
+    {
         $user = AuthMiddleware::authenticate();
         AuthMiddleware::authorize($user, ['admin', 'teacher']);
 
@@ -139,8 +154,9 @@ class GradeController {
         ]);
     }
 
-    private function letterFromScore(float $score): string {
-        return match(true) {
+    private function letterFromScore(float $score): string
+    {
+        return match (true) {
             $score >= 90 => 'A',
             $score >= 80 => 'B',
             $score >= 70 => 'C',
@@ -149,7 +165,13 @@ class GradeController {
         };
     }
 
-    private function getBody(): array {
-        return json_decode(file_get_contents('php://input'), true) ?? [];
+    private function getBody(): array
+    {
+        if (!empty($_POST)) return $_POST;
+        $raw = file_get_contents('php://input');
+        $json = json_decode($raw, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($json)) return $json;
+        parse_str($raw, $parsed);
+        return is_array($parsed) ? $parsed : [];
     }
 }

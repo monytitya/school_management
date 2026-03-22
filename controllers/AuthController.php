@@ -5,19 +5,19 @@ require_once __DIR__ . '/../helpers/jwt.php';
 require_once __DIR__ . '/../helpers/response.php';
 require_once __DIR__ . '/../middleware/auth.php';
 
-class AuthController {
+class AuthController
+{
 
     private UserModel $userModel;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->userModel = new UserModel();
     }
-
-    // POST /api/auth/register
-    public function register(): void {
+    public function register(): void
+    {
         $body = $this->getBody();
 
-        // Validate required fields
         $errors = [];
         if (empty($body['name']))     $errors['name']     = 'Name is required.';
         if (empty($body['email']))    $errors['email']    = 'Email is required.';
@@ -48,24 +48,29 @@ class AuthController {
         }
 
         // Create user
-        $id = $this->userModel->create(
-            trim($body['name']),
-            strtolower(trim($body['email'])),
-            $body['password'],
-            $body['role']
-        );
+        try {
+            $id = $this->userModel->create(
+                trim($body['name']),
+                strtolower(trim($body['email'])),
+                $body['password'],
+                $body['role']
+            );
 
-        $user = $this->userModel->findById($id);
-        $token = JWT::generate(['user_id' => $user['id'], 'role' => $user['role'], 'email' => $user['email']]);
+            $user = $this->userModel->findById($id);
+            $token = JWT::generate(['user_id' => $user['id'], 'role' => $user['role'], 'email' => $user['email']]);
 
-        Response::success([
-            'user'  => $user,
-            'token' => $token,
-        ], 'Registration successful.', 201);
+            Response::success([
+                'user'  => $user,
+                'token' => $token,
+            ], 'Registration successful.', 201);
+        } catch (PDOException $e) {
+            Response::error('Database Error: ' . $e->getMessage(), 500);
+        }
     }
 
     // POST /api/auth/login
-    public function login(): void {
+    public function login(): void
+    {
         $body = $this->getBody();
 
         if (empty($body['email']) || empty($body['password'])) {
@@ -95,7 +100,8 @@ class AuthController {
     }
 
     // GET /api/auth/me  (protected)
-    public function me(): void {
+    public function me(): void
+    {
         $payload = AuthMiddleware::authenticate();
         $user = $this->userModel->findById($payload['user_id']);
         if (!$user) Response::notFound('User not found.');
@@ -103,7 +109,8 @@ class AuthController {
     }
 
     // POST /api/auth/change-password  (protected)
-    public function changePassword(): void {
+    public function changePassword(): void
+    {
         $payload = AuthMiddleware::authenticate();
         $body = $this->getBody();
 
@@ -124,9 +131,13 @@ class AuthController {
         Response::success(null, 'Password changed successfully.');
     }
 
-    // Helper: parse JSON request body
-    private function getBody(): array {
+    private function getBody(): array
+    {
+        if (!empty($_POST)) return $_POST;
         $raw = file_get_contents('php://input');
-        return json_decode($raw, true) ?? [];
+        $json = json_decode($raw, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($json)) return $json;
+        parse_str($raw, $parsed);
+        return is_array($parsed) ? $parsed : [];
     }
 }

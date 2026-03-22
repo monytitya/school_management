@@ -21,7 +21,9 @@ class AuthMiddleware
     }
     public static function authorize(array $user, array $allowedRoles): void
     {
-        if (!in_array($user['role'], $allowedRoles)) {
+        $role = strtolower((string) ($user['role'] ?? ''));
+        $allowed = array_map('strtolower', $allowedRoles);
+        if (!in_array($role, $allowed, true)) {
             Response::forbidden('You do not have permission to access this resource.');
         }
     }

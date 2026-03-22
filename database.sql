@@ -17,9 +17,9 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS classes (
     id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    name         VARCHAR(100) NOT NULL,           -- e.g. "Grade 10A"
-    grade_level  VARCHAR(50)  NOT NULL,            -- e.g. "10"
-    teacher_id   INT UNSIGNED NULL,               -- homeroom teacher
+    name         VARCHAR(100) NOT NULL,          
+    grade_level  VARCHAR(50)  NOT NULL,           
+    teacher_id   INT UNSIGNED NULL,              
     academic_year VARCHAR(10) NOT NULL DEFAULT '2024-2025',
     created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

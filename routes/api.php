@@ -6,9 +6,19 @@ require_once __DIR__ . '/../controllers/ClassController.php';
 require_once __DIR__ . '/../controllers/SubjectController.php';
 require_once __DIR__ . '/../controllers/AttendanceController.php';
 require_once __DIR__ . '/../controllers/GradeController.php';
+require_once __DIR__ . '/../controllers/StudentRegistryController.php';
+require_once __DIR__ . '/../controllers/StatsController.php';
 
-function registerStudentRoutes(Router $router): void
+
+function registerStudentRoutes($router): void
 {
+    $router->get('/', function () {
+        echo json_encode([
+            'success' => true,
+            'message' => 'School Management API is running 🚀'
+        ]);
+    });
+
     $ctrl = new StudentController();
     $router->add('GET',    '/students',     fn() => $ctrl->index());
     $router->add('GET',    '/students/:id', fn($id) => $ctrl->show($id));
@@ -65,7 +75,24 @@ function registerGradeRoutes(Router $router): void
     $router->add('GET',    '/grades/subject/:id',              fn($id) => $ctrl->bySubject($id));
     $router->add('GET',    '/grades/report-card/:id',          fn($id) => $ctrl->reportCard($id));
     $router->add('GET',    '/grades/class-average/:subjectId', fn($id) => $ctrl->classAverage($id));
+    $router->add('GET',    '/grades/:id',                      fn($id) => $ctrl->show($id));
     $router->add('POST',   '/grades',                          fn() => $ctrl->store());
     $router->add('PUT',    '/grades/:id',                      fn($id) => $ctrl->update($id));
     $router->add('DELETE', '/grades/:id',                      fn($id) => $ctrl->destroy($id));
+}
+
+function registerStudentRegistryRoutes(Router $router): void
+{
+    $ctrl = new StudentRegistryController();
+    $router->add('GET',    '/student-registry',     fn() => $ctrl->index());
+    $router->add('GET',    '/student-registry/:id', fn($id) => $ctrl->show($id));
+    $router->add('POST',   '/student-registry',     fn() => $ctrl->store());
+    $router->add('PUT',    '/student-registry/:id', fn($id) => $ctrl->update($id));
+    $router->add('DELETE', '/student-registry/:id', fn($id) => $ctrl->destroy($id));
+}
+
+function registerStatsRoutes(Router $router): void
+{
+    $ctrl = new StatsController();
+    $router->add('GET', '/stats/dashboard', fn() => $ctrl->dashboard());
 }
