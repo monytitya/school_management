@@ -62,8 +62,6 @@ class StudentController
 
         if ($this->studentModel->studentIdExists($body['student_id']))
             Response::error('Student ID already exists.', 409);
-
-        // Create user account
         $userId = $this->userModel->create(
             trim($body['name']),
             strtolower(trim($body['email'])),

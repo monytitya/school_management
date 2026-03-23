@@ -39,19 +39,102 @@ class StudentRegistryController
         Response::success($row);
     }
 
+    //Store and Update
+    // public function store(): void
+    // {
+    //     $user = AuthMiddleware::authenticate();
+    //     AuthMiddleware::authorize($user, ['admin', 'teacher']);
+
+    //     $body = $this->getBody();
+    //     $errors = [];
+    //     if (empty($body['student_code'])) {
+    //         $errors['student_code'] = 'Student code is required.';
+    //     }
+    //     if (empty($body['student_full_name'])) {
+    //         $errors['student_full_name'] = 'Full name is required.';
+    //     }
+    //     if (!empty($errors)) {
+    //         Response::error('Validation failed.', 422, $errors);
+    //     }
+
+    //     if (!empty($body['email']) && !filter_var($body['email'], FILTER_VALIDATE_EMAIL)) {
+    //         Response::error('Invalid email format.', 422);
+    //     }
+
+    //     if ($this->model->codeExists(trim($body['student_code']))) {
+    //         Response::error('Student code already exists.', 409);
+    //     }
+
+    //     $data = $this->normalizeBody($body);
+    //     $fkErrors = $this->validateForeignKeys($data);
+    //     if (!empty($fkErrors)) {
+    //         Response::error('Validation failed.', 422, $fkErrors);
+    //     }
+
+    //     try {
+    //         $id = $this->model->create($data);
+    //         Response::success($this->model->findById($id), 'Student added to registry.', 201);
+    //     } catch (Throwable $e) {
+    //         Response::error('Could not save student. Please verify school/stage/section values.', 422);
+    //     }
+    // }
+
+    // public function update(string $id): void
+    // {
+    //     $user = AuthMiddleware::authenticate();
+    //     AuthMiddleware::authorize($user, ['admin', 'teacher']);
+
+    //     $existing = $this->model->findById((int) $id);
+    //     if (!$existing) {
+    //         Response::notFound('Record not found.');
+    //     }
+
+    //     $body = $this->getBody();
+    //     $errors = [];
+    //     if (empty($body['student_code'])) {
+    //         $errors['student_code'] = 'Student code is required.';
+    //     }
+    //     if (empty($body['student_full_name'])) {
+    //         $errors['student_full_name'] = 'Full name is required.';
+    //     }
+    //     if (!empty($errors)) {
+    //         Response::error('Validation failed.', 422, $errors);
+    //     }
+
+    //     if (!empty($body['email']) && !filter_var($body['email'], FILTER_VALIDATE_EMAIL)) {
+    //         Response::error('Invalid email format.', 422);
+    //     }
+
+    //     if ($this->model->codeExists(trim($body['student_code']), (int) $id)) {
+    //         Response::error('Student code already exists.', 409);
+    //     }
+
+    //     $data = $this->normalizeBody($body);
+    //     $fkErrors = $this->validateForeignKeys($data);
+    //     if (!empty($fkErrors)) {
+    //         Response::error('Validation failed.', 422, $fkErrors);
+    //     }
+
+    //     try {
+    //         $this->model->update((int) $id, $data);
+    //         Response::success($this->model->findById((int) $id), 'Record updated.');
+    //     } catch (Throwable $e) {
+    //         Response::error('Could not update student. Please verify school/stage/section values.', 422);
+    //     }
+    // }
+
     public function store(): void
     {
         $user = AuthMiddleware::authenticate();
         AuthMiddleware::authorize($user, ['admin', 'teacher']);
 
         $body = $this->getBody();
+
+        // 1. Validation មូលដ្ឋាន
         $errors = [];
-        if (empty($body['student_code'])) {
-            $errors['student_code'] = 'Student code is required.';
-        }
-        if (empty($body['student_full_name'])) {
-            $errors['student_full_name'] = 'Full name is required.';
-        }
+        if (empty($body['student_code'])) $errors['student_code'] = 'Student code is required.';
+        if (empty($body['student_full_name'])) $errors['student_full_name'] = 'Full name is required.';
+
         if (!empty($errors)) {
             Response::error('Validation failed.', 422, $errors);
         }
@@ -64,17 +147,21 @@ class StudentRegistryController
             Response::error('Student code already exists.', 409);
         }
 
+        // 2. រៀបចំទិន្នន័យ និង Check Foreign Keys
         $data = $this->normalizeBody($body);
         $fkErrors = $this->validateForeignKeys($data);
+
         if (!empty($fkErrors)) {
-            Response::error('Validation failed.', 422, $fkErrors);
+            Response::error('Foreign Key Validation failed.', 422, $fkErrors);
         }
 
+        // 3. ព្យាយាម Save ចូល Database
         try {
             $id = $this->model->create($data);
-            Response::success($this->model->findById($id), 'Student added to registry.', 201);
+            Response::success($this->model->findById($id), 'Student added successfully.', 201);
         } catch (Throwable $e) {
-            Response::error('Could not save student. Please verify school/stage/section values.', 422);
+            // ប្តូរមកដាក់បែបនេះ ដើម្បីមើលកំហុសពិត (ដូចជា Unknown Column ជាដើម)
+            Response::error("Database Error: " . $e->getMessage(), 422);
         }
     }
 
@@ -89,26 +176,9 @@ class StudentRegistryController
         }
 
         $body = $this->getBody();
-        $errors = [];
-        if (empty($body['student_code'])) {
-            $errors['student_code'] = 'Student code is required.';
-        }
-        if (empty($body['student_full_name'])) {
-            $errors['student_full_name'] = 'Full name is required.';
-        }
-        if (!empty($errors)) {
-            Response::error('Validation failed.', 422, $errors);
-        }
-
-        if (!empty($body['email']) && !filter_var($body['email'], FILTER_VALIDATE_EMAIL)) {
-            Response::error('Invalid email format.', 422);
-        }
-
-        if ($this->model->codeExists(trim($body['student_code']), (int) $id)) {
-            Response::error('Student code already exists.', 409);
-        }
-
         $data = $this->normalizeBody($body);
+
+        // Check Foreign Keys មុននឹង Update
         $fkErrors = $this->validateForeignKeys($data);
         if (!empty($fkErrors)) {
             Response::error('Validation failed.', 422, $fkErrors);
@@ -116,12 +186,11 @@ class StudentRegistryController
 
         try {
             $this->model->update((int) $id, $data);
-            Response::success($this->model->findById((int) $id), 'Record updated.');
+            Response::success($this->model->findById((int) $id), 'Record updated successfully.');
         } catch (Throwable $e) {
-            Response::error('Could not update student. Please verify school/stage/section values.', 422);
+            Response::error("Database Error: " . $e->getMessage(), 422);
         }
     }
-
     public function destroy(string $id): void
     {
         $user = AuthMiddleware::authenticate();
@@ -163,7 +232,6 @@ class StudentRegistryController
         }
         return (int) $v;
     }
-
     private function validateForeignKeys(array $data): array
     {
         $errors = [];
@@ -178,7 +246,22 @@ class StudentRegistryController
         }
         return $errors;
     }
+    // private function validateForeignKeys(array $data): array
+    // {
+    //     $errors = [];
+    //     if (($data['school_id'] ?? null) !== null && !$this->existsById('schools', 'id', (int) $data['school_id'])) {
+    //         $errors['school_id'] = 'School ID does not exist.';
+    //     }
 
+    //     if (($data['stage_id'] ?? null) !== null && !$this->existsById('stages', 'id', (int) $data['stage_id'])) {
+    //         $errors['stage_id'] = 'Stage ID does not exist.';
+    //     }
+    //     if (($data['section_id'] ?? null) !== null && !$this->existsById('sections', 'id', (int) $data['section_id'])) {
+    //         $errors['section_id'] = 'Section ID does not exist.';
+    //     }
+
+    //     return $errors;
+    // }
     private function existsById(string $table, string $idColumn, int $id): bool
     {
         $db = Database::connect();
@@ -189,7 +272,6 @@ class StudentRegistryController
             $stmt->execute([$id]);
             return (int) $stmt->fetchColumn() > 0;
         } catch (Throwable $e) {
-            // If lookup table does not exist in this install, do not block save.
             return true;
         }
     }

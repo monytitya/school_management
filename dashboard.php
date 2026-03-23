@@ -292,7 +292,7 @@
             console.error(e);
         }
 
-        // --- 2. Line Chart ---
+
         const ctxLine = document.getElementById('enrollmentChart').getContext('2d');
         new Chart(ctxLine, {
             type: 'line',

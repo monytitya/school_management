@@ -17,7 +17,6 @@ class UserModel
         $user = $stmt->fetch();
         return $user ?: null;
     }
-
     public function findById(int $id): ?array
     {
         $stmt = $this->db->prepare("SELECT id, name, email, role, created_at FROM users WHERE id = ? LIMIT 1");
