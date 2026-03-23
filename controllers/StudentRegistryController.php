@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../models/StudentRegistryModel.php';
+require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../helpers/response.php';
 require_once __DIR__ . '/../middleware/auth.php';
 
@@ -20,7 +21,7 @@ class StudentRegistryController
 
         $filters = [
             'search'   => $_GET['search'] ?? null,
-            'school_id'=> $_GET['school_id'] ?? null,
+            'school_id' => $_GET['school_id'] ?? null,
         ];
         $rows = $this->model->getAll($filters);
         Response::success($rows, 'Student registry retrieved.');
@@ -64,8 +65,17 @@ class StudentRegistryController
         }
 
         $data = $this->normalizeBody($body);
-        $id = $this->model->create($data);
-        Response::success($this->model->findById($id), 'Student added to registry.', 201);
+        $fkErrors = $this->validateForeignKeys($data);
+        if (!empty($fkErrors)) {
+            Response::error('Validation failed.', 422, $fkErrors);
+        }
+
+        try {
+            $id = $this->model->create($data);
+            Response::success($this->model->findById($id), 'Student added to registry.', 201);
+        } catch (Throwable $e) {
+            Response::error('Could not save student. Please verify school/stage/section values.', 422);
+        }
     }
 
     public function update(string $id): void
@@ -98,8 +108,18 @@ class StudentRegistryController
             Response::error('Student code already exists.', 409);
         }
 
-        $this->model->update((int) $id, $this->normalizeBody($body));
-        Response::success($this->model->findById((int) $id), 'Record updated.');
+        $data = $this->normalizeBody($body);
+        $fkErrors = $this->validateForeignKeys($data);
+        if (!empty($fkErrors)) {
+            Response::error('Validation failed.', 422, $fkErrors);
+        }
+
+        try {
+            $this->model->update((int) $id, $data);
+            Response::success($this->model->findById((int) $id), 'Record updated.');
+        } catch (Throwable $e) {
+            Response::error('Could not update student. Please verify school/stage/section values.', 422);
+        }
     }
 
     public function destroy(string $id): void
@@ -136,13 +156,42 @@ class StudentRegistryController
             'section_id'        => $this->optionalInt($body['section_id'] ?? null),
         ];
     }
-
     private function optionalInt($v): ?int
     {
         if ($v === null || $v === '') {
             return null;
         }
         return (int) $v;
+    }
+
+    private function validateForeignKeys(array $data): array
+    {
+        $errors = [];
+        if (($data['school_id'] ?? null) !== null && !$this->existsById('schools', 'school_id', (int) $data['school_id'])) {
+            $errors['school_id'] = 'School ID does not exist.';
+        }
+        if (($data['stage_id'] ?? null) !== null && !$this->existsById('stages', 'stage_id', (int) $data['stage_id'])) {
+            $errors['stage_id'] = 'Stage ID does not exist.';
+        }
+        if (($data['section_id'] ?? null) !== null && !$this->existsById('sections', 'section_id', (int) $data['section_id'])) {
+            $errors['section_id'] = 'Section ID does not exist.';
+        }
+        return $errors;
+    }
+
+    private function existsById(string $table, string $idColumn, int $id): bool
+    {
+        $db = Database::connect();
+        $tbl = str_replace('`', '', $table);
+        $col = str_replace('`', '', $idColumn);
+        try {
+            $stmt = $db->prepare("SELECT COUNT(*) FROM `{$tbl}` WHERE `{$col}` = ? LIMIT 1");
+            $stmt->execute([$id]);
+            return (int) $stmt->fetchColumn() > 0;
+        } catch (Throwable $e) {
+            // If lookup table does not exist in this install, do not block save.
+            return true;
+        }
     }
 
     private function getBody(): array

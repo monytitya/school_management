@@ -5,18 +5,20 @@ require_once __DIR__ . '/../models/UserModel.php';
 require_once __DIR__ . '/../helpers/response.php';
 require_once __DIR__ . '/../middleware/auth.php';
 
-class StudentController {
+class StudentController
+{
 
     private StudentModel $studentModel;
     private UserModel    $userModel;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->studentModel = new StudentModel();
         $this->userModel    = new UserModel();
     }
 
-    // GET /api/students
-    public function index(): void {
+    public function index(): void
+    {
         $user = AuthMiddleware::authenticate();
         AuthMiddleware::authorize($user, ['admin', 'teacher']);
 
@@ -29,8 +31,8 @@ class StudentController {
         Response::success($students, 'Students retrieved.');
     }
 
-    // GET /api/students/:id
-    public function show(string $id): void {
+    public function show(string $id): void
+    {
         $user = AuthMiddleware::authenticate();
         AuthMiddleware::authorize($user, ['admin', 'teacher', 'parent']);
 
@@ -38,15 +40,13 @@ class StudentController {
         if (!$student) Response::notFound('Student not found.');
         Response::success($student);
     }
-
-    // POST /api/students
-    public function store(): void {
+    public function store(): void
+    {
         $user = AuthMiddleware::authenticate();
         AuthMiddleware::authorize($user, ['admin']);
 
         $body = $this->getBody();
 
-        // Validate
         $errors = [];
         if (empty($body['name']))        $errors['name']        = 'Name is required.';
         if (empty($body['email']))       $errors['email']       = 'Email is required.';
@@ -71,7 +71,6 @@ class StudentController {
             'student'
         );
 
-        // Create student profile
         $studentId = $this->studentModel->create([
             'user_id'       => $userId,
             'student_id'    => $body['student_id'],
@@ -87,9 +86,8 @@ class StudentController {
         $student = $this->studentModel->findById($studentId);
         Response::success($student, 'Student created successfully.', 201);
     }
-
-    // PUT /api/students/:id
-    public function update(string $id): void {
+    public function update(string $id): void
+    {
         $user = AuthMiddleware::authenticate();
         AuthMiddleware::authorize($user, ['admin']);
 
@@ -99,15 +97,14 @@ class StudentController {
         $body = $this->getBody();
         $this->studentModel->update((int)$id, $body);
 
-        // Update name/email on users table if provided
         if (!empty($body['name']) || !empty($body['email'])) {
             $db = Database::connect();
             if (!empty($body['name']) && !empty($body['email'])) {
                 $db->prepare("UPDATE users SET name=?, email=? WHERE id=?")
-                   ->execute([$body['name'], $body['email'], $student['user_id']]);
+                    ->execute([$body['name'], $body['email'], $student['user_id']]);
             } elseif (!empty($body['name'])) {
                 $db->prepare("UPDATE users SET name=? WHERE id=?")
-                   ->execute([$body['name'], $student['user_id']]);
+                    ->execute([$body['name'], $student['user_id']]);
             }
         }
 
@@ -115,8 +112,8 @@ class StudentController {
         Response::success($updated, 'Student updated successfully.');
     }
 
-    // DELETE /api/students/:id
-    public function destroy(string $id): void {
+    public function destroy(string $id): void
+    {
         $user = AuthMiddleware::authenticate();
         AuthMiddleware::authorize($user, ['admin']);
 
@@ -126,8 +123,8 @@ class StudentController {
         $this->studentModel->delete((int)$id);
         Response::success(null, 'Student deleted successfully.');
     }
-
-    private function getBody(): array {
+    private function getBody(): array
+    {
         if (!empty($_POST)) return $_POST;
         $raw = file_get_contents('php://input');
         $json = json_decode($raw, true);

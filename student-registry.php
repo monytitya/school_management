@@ -297,10 +297,17 @@
         const payload = payloadFromForm();
         const method = id ? 'PUT' : 'POST';
         const path = id ? '/student-registry/' + id : '/student-registry';
-        const res = await apiFetch(path, { method, body: JSON.stringify(payload) });
+        let res = null;
+        try {
+            res = await apiFetch(path, { method, body: JSON.stringify(payload) });
+        } catch (e) {
+            alert(e.message || 'Save failed');
+            return;
+        }
         if (!res) return;
         if (!res.success) {
-            alert(res.message || 'Save failed');
+            const extra = res.errors ? ('\n' + Object.values(res.errors).join('\n')) : '';
+            alert((res.message || 'Save failed') + extra);
             return;
         }
         modal.hide();

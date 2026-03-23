@@ -35,6 +35,10 @@ class Router
     {
         $path = parse_url($uri, PHP_URL_PATH);
         $path = preg_replace('#^/api#', '', $path);
+        $path = $path === '' ? '/' : rtrim($path, '/');
+        if ($path === '') {
+            $path = '/';
+        }
 
         foreach ($this->routes as $route) {
             $pattern = $this->toRegex($route['path']);
