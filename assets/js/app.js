@@ -104,10 +104,15 @@ document.addEventListener('DOMContentLoaded', () => {
 async function apiFetch(endpoint, options = {}) {
     const token = localStorage.getItem('token');
     const headers = {
-        'Content-Type': 'application/json',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         ...(options.headers || {})
     };
+
+    if (options.body instanceof FormData) {
+        delete headers['Content-Type'];
+    } else if (!headers['Content-Type']) {
+        headers['Content-Type'] = 'application/json';
+    }
 
     const fullUrl = endpoint.startsWith('/')
         ? `${API_BASE}${endpoint}`

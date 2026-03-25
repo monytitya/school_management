@@ -1,78 +1,73 @@
 <?php
-
 require_once __DIR__ . '/../models/ClassModel.php';
 require_once __DIR__ . '/../helpers/response.php';
 require_once __DIR__ . '/../middleware/auth.php';
 
 class ClassController {
-
     private ClassModel $classModel;
 
     public function __construct() {
         $this->classModel = new ClassModel();
     }
 
-    // GET /api/classes
     public function index(): void {
-        AuthMiddleware::authenticate();
+        $user = AuthMiddleware::authenticate();
+        AuthMiddleware::authorize($user, ['admin', 'teacher']);
         Response::success($this->classModel->getAll(), 'Classes retrieved.');
     }
 
-    // GET /api/classes/:id
     public function show(string $id): void {
-        AuthMiddleware::authenticate();
+        $user = AuthMiddleware::authenticate();
+        AuthMiddleware::authorize($user, ['admin', 'teacher']);
         $class = $this->classModel->findById((int)$id);
         if (!$class) Response::notFound('Class not found.');
         Response::success($class);
     }
 
-    // GET /api/classes/:id/students
     public function students(string $id): void {
-        AuthMiddleware::authenticate();
-        $class = $this->classModel->findById((int)$id);
-        if (!$class) Response::notFound('Class not found.');
+        $user = AuthMiddleware::authenticate();
+        AuthMiddleware::authorize($user, ['admin', 'teacher']);
         $students = $this->classModel->getStudents((int)$id);
         Response::success($students, 'Class students retrieved.');
     }
 
-    // POST /api/classes
     public function store(): void {
         $user = AuthMiddleware::authenticate();
         AuthMiddleware::authorize($user, ['admin']);
-
         $body = $this->getBody();
-        if (empty($body['name']) || empty($body['grade_level']))
-            Response::error('name and grade_level are required.', 422);
+        $name = $body['class_name'] ?? $body['name'] ?? '';
+        $grade = $body['grade_level'] ?? '';
+        if (empty($name) || empty($grade)) Response::error('Name and Grade Level required.', 422);
 
-        $id    = $this->classModel->create($body);
-        $class = $this->classModel->findById($id);
-        Response::success($class, 'Class created.', 201);
+        $id = $this->classModel->create([
+            'class_name' => $name, 'grade_level' => $grade,
+            'teacher_id' => $body['teacher_id'] ?? null,
+            'academic_year' => $body['academic_year'] ?? date('Y') . '-' . (date('Y') + 1)
+        ]);
+        Response::success($this->classModel->findById($id), 'Class created.', 201);
     }
 
-    // PUT /api/classes/:id
     public function update(string $id): void {
         $user = AuthMiddleware::authenticate();
         AuthMiddleware::authorize($user, ['admin']);
-
-        $class = $this->classModel->findById((int)$id);
-        if (!$class) Response::notFound('Class not found.');
-
+        $id = (int)$id;
+        $c = $this->classModel->findById($id);
+        if (!$c) Response::notFound();
         $body = $this->getBody();
-        if (empty($body['name']) || empty($body['grade_level']))
-            Response::error('name and grade_level are required.', 422);
-
-        $this->classModel->update((int)$id, $body);
-        Response::success($this->classModel->findById((int)$id), 'Class updated.');
+        $this->classModel->update($id, [
+            'class_name' => $body['class_name'] ?? $body['name'] ?? $c['class_name'],
+            'grade_level' => $body['grade_level'] ?? $c['grade_level'],
+            'teacher_id' => $body['teacher_id'] ?? $c['teacher_id'],
+            'academic_year' => $body['academic_year'] ?? $c['academic_year']
+        ]);
+        Response::success($this->classModel->findById($id), 'Updated.');
     }
 
-    // DELETE /api/classes/:id
     public function destroy(string $id): void {
         $user = AuthMiddleware::authenticate();
         AuthMiddleware::authorize($user, ['admin']);
-
-        if (!$this->classModel->findById((int)$id)) Response::notFound('Class not found.');
         $this->classModel->delete((int)$id);
-        Response::success(null, 'Class deleted.');
+        Response::success(null, 'Deleted.');
     }
 
     private function getBody(): array {

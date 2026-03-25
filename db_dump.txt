@@ -1,0 +1,49 @@
+
+Table: classes
+ - class_id (int(11))
+ - class_name (varchar(100))
+ - subject_id (int(11))
+ - teacher_id (int(11))
+ - classroom_id (int(11))
+ - stage_id (int(11))
+ - section_id (int(11))
+
+Table: students
+ - student_id (int(11))
+ - student_code (varchar(20))
+ - student_full_name (varchar(100))
+ - gender (varchar(10))
+ - dob (date)
+ - email (varchar(100))
+ - phone (varchar(20))
+ - school_id (int(11))
+ - stage_id (int(11))
+ - section_id (int(11))
+
+Table: student_registry - Error: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'school_management.student_registry' doesn't exist
+
+Table: subjects
+ - subject_id (int(11))
+ - title (varchar(100))
+ - school_id (int(11))
+
+Table: teachers
+ - teacher_id (int(11))
+ - teacher_code (varchar(20))
+ - teacher_full_name (varchar(100))
+ - gender (varchar(10))
+ - dob (date)
+ - email (varchar(100))
+ - phone (varchar(20))
+ - profile_image (varchar(255))
+ - joined_date (date)
+ - address (text)
+
+Table: users
+ - id (int(10) unsigned)
+ - name (varchar(150))
+ - email (varchar(191))
+ - password (varchar(255))
+ - role (enum('admin','teacher','student','parent'))
+ - created_at (datetime)
+ - updated_at (datetime)

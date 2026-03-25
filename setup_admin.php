@@ -9,7 +9,6 @@ $password = 'admin123';
 $role = 'admin';
 $hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
 
-// Delete old admin if exists, then re-insert with correct hash
 $db->prepare("DELETE FROM users WHERE email = ?")->execute([$email]);
 $stmt = $db->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
 $stmt->execute([$name, $email, $hash, $role]);

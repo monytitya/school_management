@@ -33,6 +33,10 @@ class Router
 
     public function dispatch(string $method, string $uri): void
     {
+        $method = strtoupper($method);
+        if ($method === 'POST' && isset($_POST['_method'])) {
+            $method = strtoupper($_POST['_method']);
+        }
         $path = parse_url($uri, PHP_URL_PATH);
         $path = preg_replace('#^/api#', '', $path);
         $path = $path === '' ? '/' : rtrim($path, '/');

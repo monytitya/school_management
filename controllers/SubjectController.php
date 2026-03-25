@@ -1,79 +1,65 @@
 <?php
-
 require_once __DIR__ . '/../models/SubjectModel.php';
 require_once __DIR__ . '/../helpers/response.php';
 require_once __DIR__ . '/../middleware/auth.php';
 
 class SubjectController {
-
     private SubjectModel $subjectModel;
 
     public function __construct() {
         $this->subjectModel = new SubjectModel();
     }
 
-    // GET /api/subjects
     public function index(): void {
-        AuthMiddleware::authenticate();
-        $filters = [
-            'class_id'   => $_GET['class_id']   ?? null,
-            'teacher_id' => $_GET['teacher_id'] ?? null,
-        ];
+        $user = AuthMiddleware::authenticate();
+        AuthMiddleware::authorize($user, ['admin', 'teacher']);
+        $filters = ['class_id' => $_GET['class_id'] ?? null, 'teacher_id' => $_GET['teacher_id'] ?? null];
         Response::success($this->subjectModel->getAll($filters), 'Subjects retrieved.');
     }
 
-    // GET /api/subjects/:id
     public function show(string $id): void {
-        AuthMiddleware::authenticate();
-        $subject = $this->subjectModel->findById((int)$id);
-        if (!$subject) Response::notFound('Subject not found.');
-        Response::success($subject);
+        $user = AuthMiddleware::authenticate();
+        AuthMiddleware::authorize($user, ['admin', 'teacher']);
+        $sub = $this->subjectModel->findById((int)$id);
+        if (!$sub) Response::notFound('Subject not found.');
+        Response::success($sub);
     }
 
-    // POST /api/subjects
     public function store(): void {
         $user = AuthMiddleware::authenticate();
         AuthMiddleware::authorize($user, ['admin']);
-
         $body = $this->getBody();
-        if (empty($body['name']) || empty($body['code']))
-            Response::error('name and code are required.', 422);
-
-        if ($this->subjectModel->codeExists($body['code']))
-            Response::error('Subject code already exists.', 409);
-
-        $id      = $this->subjectModel->create($body);
-        $subject = $this->subjectModel->findById($id);
-        Response::success($subject, 'Subject created.', 201);
+        $name = $body['subject_name'] ?? $body['name'] ?? '';
+        $code = strtoupper($body['subject_code'] ?? $body['code'] ?? '');
+        if (empty($name) || empty($code)) Response::error('Name and Code required.', 422);
+        if ($this->subjectModel->codeExists($code)) Response::error('Code already exists.', 409);
+        $id = $this->subjectModel->create([
+            'subject_name' => $name, 'subject_code' => $code,
+            'class_id' => $body['class_id']   ?? null,
+            'teacher_id' => $body['teacher_id'] ?? null
+        ]);
+        Response::success($this->subjectModel->findById($id), 'Subject created.', 201);
     }
 
-    // PUT /api/subjects/:id
     public function update(string $id): void {
         $user = AuthMiddleware::authenticate();
         AuthMiddleware::authorize($user, ['admin']);
-
-        $subject = $this->subjectModel->findById((int)$id);
-        if (!$subject) Response::notFound('Subject not found.');
-
-        $body = $this->getBody();
-        if (empty($body['name']) || empty($body['code']))
-            Response::error('name and code are required.', 422);
-
-        if ($this->subjectModel->codeExists($body['code'], (int)$id))
-            Response::error('Subject code already exists.', 409);
-
-        $this->subjectModel->update((int)$id, $body);
-        Response::success($this->subjectModel->findById((int)$id), 'Subject updated.');
+        $id = (int)$id; $s = $this->subjectModel->findById($id);
+        if (!$s) Response::notFound(); $body = $this->getBody();
+        $this->subjectModel->update($id, [
+            'subject_name' => $body['subject_name'] ?? $body['name'] ?? $s['subject_name'],
+            'subject_code' => strtoupper($body['subject_code'] ?? $body['code'] ?? $s['subject_code']),
+            'class_id' => $body['class_id']   ?? $s['class_id'],
+            'teacher_id' => $body['teacher_id'] ?? $s['teacher_id']
+        ]);
+        Response::success($this->subjectModel->findById($id), 'Updated.');
     }
 
-    // DELETE /api/subjects/:id
     public function destroy(string $id): void {
         $user = AuthMiddleware::authenticate();
         AuthMiddleware::authorize($user, ['admin']);
-
-        if (!$this->subjectModel->findById((int)$id)) Response::notFound('Subject not found.');
         $this->subjectModel->delete((int)$id);
-        Response::success(null, 'Subject deleted.');
+        Response::success(null, 'Deleted.');
     }
 
     private function getBody(): array {

@@ -1,9 +1,7 @@
 <?php
-
 require_once __DIR__ . '/../config/database.php';
 
 class TeacherModel {
-
     private PDO $db;
 
     public function __construct() {
@@ -11,80 +9,71 @@ class TeacherModel {
     }
 
     public function getAll(array $filters = []): array {
-        $sql = "SELECT t.*, u.name, u.email,
-                       GROUP_CONCAT(s.name ORDER BY s.name SEPARATOR ', ') AS subjects
-                FROM teachers t
-                JOIN users u ON t.user_id = u.id
-                LEFT JOIN subjects s ON s.teacher_id = t.id
-                WHERE 1=1";
+        $sql = "SELECT t.*, t.teacher_id AS id, t.teacher_full_name AS name, t.teacher_code AS employee_id, t.email as user_email
+                FROM teachers t WHERE 1=1";
         $params = [];
-
         if (!empty($filters['search'])) {
-            $sql .= " AND (u.name LIKE ? OR t.employee_id LIKE ?)";
-            $params[] = "%{$filters['search']}%";
-            $params[] = "%{$filters['search']}%";
+            $sql .= " AND (t.teacher_full_name LIKE ? OR t.teacher_code LIKE ? OR t.email LIKE ?)";
+            $q = "%{$filters['search']}%"; $params[] = $q; $params[] = $q; $params[] = $q;
         }
-
-        $sql .= " GROUP BY t.id ORDER BY u.name ASC";
+        $sql .= " ORDER BY t.teacher_id DESC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll();
     }
 
     public function findById(int $id): ?array {
-        $stmt = $this->db->prepare(
-            "SELECT t.*, u.name, u.email,
-                    GROUP_CONCAT(s.name ORDER BY s.name SEPARATOR ', ') AS subjects
-             FROM teachers t
-             JOIN users u ON t.user_id = u.id
-             LEFT JOIN subjects s ON s.teacher_id = t.id
-             WHERE t.id = ?
-             GROUP BY t.id LIMIT 1"
-        );
+        $stmt = $this->db->prepare("SELECT t.*, t.teacher_id as id, t.teacher_full_name as name, t.teacher_code as employee_id FROM teachers t WHERE teacher_id = ? LIMIT 1");
         $stmt->execute([$id]);
         return $stmt->fetch() ?: null;
     }
 
-    public function employeeIdExists(string $empId): bool {
-        $stmt = $this->db->prepare("SELECT COUNT(*) FROM teachers WHERE employee_id = ?");
-        $stmt->execute([$empId]);
+    public function codeExists(string $code, int $excludeId = 0): bool {
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM teachers WHERE teacher_code = ? AND teacher_id != ?");
+        $stmt->execute([$code, $excludeId]);
         return (int)$stmt->fetchColumn() > 0;
     }
 
+    private function normalizeData(array $data): array {
+        return [
+            'teacher_code' => $data['teacher_code'] ?? null,
+            'teacher_full_name' => $data['teacher_full_name'] ?? null,
+            'gender' => !empty($data['gender']) ? $data['gender'] : null,
+            'dob' => !empty($data['dob']) ? $data['dob'] : null,
+            'email' => !empty($data['email']) ? $data['email'] : null,
+            'phone' => !empty($data['phone']) ? $data['phone'] : null,
+            'profile_image' => !empty($data['profile_image']) ? $data['profile_image'] : ($data['old_profile_image'] ?? null),
+            'joined_date' => !empty($data['joined_date']) ? $data['joined_date'] : null,
+            'address' => !empty($data['address']) ? $data['address'] : null
+        ];
+    }
+
     public function create(array $data): int {
+        $d = $this->normalizeData($data);
         $stmt = $this->db->prepare(
-            "INSERT INTO teachers (user_id, employee_id, phone, address, joined_date)
-             VALUES (?, ?, ?, ?, ?)"
+            "INSERT INTO teachers (teacher_code, teacher_full_name, gender, dob, email, phone, profile_image, joined_date, address) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         $stmt->execute([
-            $data['user_id'],
-            $data['employee_id'],
-            $data['phone']       ?? null,
-            $data['address']     ?? null,
-            $data['joined_date'] ?? date('Y-m-d'),
+            $d['teacher_code'], $d['teacher_full_name'], $d['gender'], $d['dob'],
+            $d['email'], $d['phone'], $d['profile_image'], $d['joined_date'], $d['address']
         ]);
         return (int)$this->db->lastInsertId();
     }
 
     public function update(int $id, array $data): void {
+        $d = $this->normalizeData($data);
         $stmt = $this->db->prepare(
-            "UPDATE teachers SET phone=?, address=?, joined_date=? WHERE id=?"
+            "UPDATE teachers SET teacher_code=?, teacher_full_name=?, gender=?, dob=?, email=?, phone=?, profile_image=?, joined_date=?, address=? WHERE teacher_id=?"
         );
         $stmt->execute([
-            $data['phone']       ?? null,
-            $data['address']     ?? null,
-            $data['joined_date'] ?? null,
-            $id,
+            $d['teacher_code'], $d['teacher_full_name'], $d['gender'], $d['dob'],
+            $d['email'], $d['phone'], $d['profile_image'], $d['joined_date'], $d['address'], $id,
         ]);
     }
 
     public function delete(int $id): void {
-        $stmt = $this->db->prepare("SELECT user_id FROM teachers WHERE id = ?");
-        $stmt->execute([$id]);
-        $row = $stmt->fetch();
-        if ($row) {
-            $this->db->prepare("DELETE FROM users WHERE id = ?")->execute([$row['user_id']]);
-        }
+        $this->db->prepare("DELETE FROM teachers WHERE teacher_id = ?")->execute([$id]);
     }
 
     public function count(): int {

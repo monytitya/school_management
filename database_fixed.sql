@@ -6,7 +6,6 @@ CREATE DATABASE IF NOT EXISTS school_management
 
 USE school_management;
 
--- 1. users (no dependencies)
 CREATE TABLE IF NOT EXISTS users (
     id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name       VARCHAR(150)  NOT NULL,
@@ -16,9 +15,6 @@ CREATE TABLE IF NOT EXISTS users (
     created_at DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
--- Student registry (flat table — matches phpMyAdmin columns)
--- Run this once in MySQL/phpMyAdmin if the table does not exist yet.
-
 USE school_management;
 
 CREATE TABLE IF NOT EXISTS student_registry (
@@ -37,7 +33,6 @@ CREATE TABLE IF NOT EXISTS student_registry (
     UNIQUE KEY uq_student_registry_code (student_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 2. classes (teacher_id FK added later via ALTER)
 CREATE TABLE IF NOT EXISTS classes (
     id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name          VARCHAR(100) NOT NULL,
@@ -47,7 +42,6 @@ CREATE TABLE IF NOT EXISTS classes (
     created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- 3. teachers (depends on users)
 CREATE TABLE IF NOT EXISTS teachers (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id     INT UNSIGNED NOT NULL UNIQUE,
@@ -58,8 +52,6 @@ CREATE TABLE IF NOT EXISTS teachers (
     created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
--- 4. parents (depends on users)
 CREATE TABLE IF NOT EXISTS parents (
     id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id    INT UNSIGNED NOT NULL UNIQUE,
@@ -69,7 +61,6 @@ CREATE TABLE IF NOT EXISTS parents (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- 5. students (depends on users, classes, parents)
 CREATE TABLE IF NOT EXISTS students (
     id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id       INT UNSIGNED NOT NULL UNIQUE,
@@ -87,7 +78,6 @@ CREATE TABLE IF NOT EXISTS students (
     FOREIGN KEY (parent_id) REFERENCES parents(id)  ON DELETE SET NULL
 );
 
--- 6. subjects (depends on classes, teachers)
 CREATE TABLE IF NOT EXISTS subjects (
     id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name       VARCHAR(100) NOT NULL,
@@ -99,7 +89,6 @@ CREATE TABLE IF NOT EXISTS subjects (
     FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL
 );
 
--- 7. attendance (depends on students, classes, users)
 CREATE TABLE IF NOT EXISTS attendance (
     id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     student_id INT UNSIGNED NOT NULL,
@@ -115,7 +104,6 @@ CREATE TABLE IF NOT EXISTS attendance (
     FOREIGN KEY (created_by) REFERENCES users(id)    ON DELETE SET NULL
 );
 
--- 8. grades (depends on students, subjects, users)
 CREATE TABLE IF NOT EXISTS grades (
     id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     student_id INT UNSIGNED   NOT NULL,
@@ -130,8 +118,6 @@ CREATE TABLE IF NOT EXISTS grades (
     FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES users(id)    ON DELETE SET NULL
 );
-
--- 9. timetable (depends on classes, subjects, teachers)
 CREATE TABLE IF NOT EXISTS timetable (
     id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     class_id   INT UNSIGNED NOT NULL,
@@ -147,15 +133,11 @@ CREATE TABLE IF NOT EXISTS timetable (
     FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL
 );
 
--- Now add the deferred FK: classes.teacher_id -> teachers.id
 ALTER TABLE classes
     ADD CONSTRAINT fk_classes_teacher
     FOREIGN KEY IF NOT EXISTS (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL;
 
 SET FOREIGN_KEY_CHECKS = 1;
-
--- ─── SEED: Default Admin User ─────────────────────────────────────
--- Password: admin123  (bcrypt hashed)
 INSERT IGNORE INTO users (name, email, password, role) VALUES
 (
     'System Admin',

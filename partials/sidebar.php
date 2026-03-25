@@ -19,14 +19,13 @@ $navClass = function (string $key) use ($activeNav): string {
 
     <nav class="nav flex-column mb-auto sidebar-nav">
         <a class="<?php echo $navClass('dashboard'); ?>" href="dashboard.php"><i class="fa-solid fa-house me-3"></i>Dashboard</a>
-        <a class="<?php echo $navClass('students'); ?>" href="student-registry.php"><i class="fa-solid fa-user-group me-3"></i>Students</a>
-        <a class="<?php echo $navClass('teachers'); ?>" href="coming-soon.php?m=Teachers"><i class="fa-solid fa-chalkboard-user me-3"></i>Teachers</a>
-        <a class="<?php echo $navClass('classes'); ?>" href="coming-soon.php?m=Classes"><i class="fa-solid fa-school me-3"></i>Classes</a>
-        <a class="<?php echo $navClass('subjects'); ?>" href="coming-soon.php?m=Subjects"><i class="fa-solid fa-book me-3"></i>Subjects</a>
-        <a class="<?php echo $navClass('attendance'); ?>" href="coming-soon.php?m=Attendance"><i class="fa-solid fa-calendar-check me-3"></i>Attendance</a>
+        <a class="<?php echo $navClass('teachers'); ?>" href="teachers.php"><i class="fa-solid fa-chalkboard-user me-3"></i>Teachers</a>
+        <a class="<?php echo $navClass('students'); ?>" href="student-registry.php"><i class="fa-solid fa-address-book me-3"></i>Registry</a>
+        <a class="<?php echo $navClass('classes'); ?>" href="classes.php"><i class="fa-solid fa-school me-3"></i>Classes</a>
+        <a class="<?php echo $navClass('subjects'); ?>" href="subjects.php"><i class="fa-solid fa-book me-3"></i>Subjects</a>
+        <a class="<?php echo $navClass('attendance'); ?>" href="attendance.php"><i class="fa-solid fa-calendar-check me-3"></i>Attendance</a>
         <a class="<?php echo $navClass('grades'); ?>" href="coming-soon.php?m=Grades"><i class="fa-solid fa-star me-3"></i>Grades</a>
         <div class="mt-4 mb-2 text-muted fw-bold px-3" style="font-size: 0.70rem; letter-spacing: 0.5px;">SYSTEM</div>
-        <a class="<?php echo $navClass('application'); ?>" href="coming-soon.php?m=Application"><i class="fa-solid fa-layer-group me-3"></i>Application</a>
-        <a class="<?php echo $navClass('setup'); ?>" href="coming-soon.php?m=Setup"><i class="fa-solid fa-gear me-3"></i>Set up</a>
+        <a class="<?php echo $navClass('setup'); ?>" href="setup_admin.php"><i class="fa-solid fa-gear me-3"></i>Set up</a>
     </nav>
 </div>

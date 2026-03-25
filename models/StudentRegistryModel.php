@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__ . '/../config/database.php';
 
 class StudentRegistryModel
@@ -36,7 +37,6 @@ class StudentRegistryModel
         $stmt->execute($params);
         return $stmt->fetchAll();
     }
-
     public function findById(int $studentId): ?array
     {
         $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE student_id = ? LIMIT 1");
@@ -134,6 +134,7 @@ class StudentRegistryModel
 
     private function resolveTable(): string
     {
+        // Use whichever table exists with the expected flat student columns.
         if ($this->tableHasColumns('student_registry')) {
             return 'student_registry';
         }

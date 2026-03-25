@@ -11,69 +11,69 @@
     <link href="assets/css/style.css" rel="stylesheet">
 
     <style>
-    body {
-        font-family: 'Inter', sans-serif;
-        background-color: #f8f9fa;
-    }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
 
-    .sidebar {
-        width: 260px;
-        height: 100vh;
-        position: fixed;
-        background: white;
-        border-right: 1px solid #edf2f7;
-    }
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            background: white;
+            border-right: 1px solid #edf2f7;
+        }
 
-    .main-content {
-        margin-left: 260px;
-        padding: 30px;
-    }
+        .main-content {
+            margin-left: 260px;
+            padding: 30px;
+        }
 
-    .nav-link {
-        color: #64748b;
-        font-weight: 500;
-        padding: 12px 15px;
-        border-radius: 8px;
-        margin-bottom: 5px;
-    }
+        .nav-link {
+            color: #64748b;
+            font-weight: 500;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 5px;
+        }
 
-    .nav-link.active {
-        background: #fff1f2;
-        color: #ff4757;
-    }
+        .nav-link.active {
+            background: #fff1f2;
+            color: #ff4757;
+        }
 
-    .nav-link:hover:not(.active) {
-        background: #f1f5f9;
-    }
+        .nav-link:hover:not(.active) {
+            background: #f1f5f9;
+        }
 
-    .stat-card {
-        transition: transform 0.2s;
-        border: none;
-    }
+        .stat-card {
+            transition: transform 0.2s;
+            border: none;
+        }
 
-    .stat-card:hover {
-        transform: translateY(-5px);
-    }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
 
-    .font-sm {
-        font-size: 0.85rem;
-    }
+        .font-sm {
+            font-size: 0.85rem;
+        }
 
-    .gradient-red {
-        background: linear-gradient(135deg, #ff4d6b, #ff758c);
-    }
+        .gradient-red {
+            background: linear-gradient(135deg, #ff4d6b, #ff758c);
+        }
 
-    .gradient-blue {
-        background: linear-gradient(135deg, #4d94ff, #82b1ff);
-    }
+        .gradient-blue {
+            background: linear-gradient(135deg, #4d94ff, #82b1ff);
+        }
 
-    .gradient-purple {
-        background: linear-gradient(135deg, #9a4dff, #b388ff);
-    }
+        .gradient-purple {
+            background: linear-gradient(135deg, #9a4dff, #b388ff);
+        }
 
-    canvas {
-        max-width: 100% !important;
-    }
+        canvas {
+            max-width: 100% !important;
+        }
     </style>
 </head>
 
@@ -81,7 +81,8 @@
 
     <div class="d-flex">
 
-        <?php $activeNav = 'dashboard'; include __DIR__ . '/partials/sidebar.php'; ?>
+        <?php $activeNav = 'dashboard';
+include __DIR__ . '/partials/sidebar.php'; ?>
 
         <div class="main-content flex-grow-1">
 
@@ -124,17 +125,19 @@
                     <div class="gradient-red rounded-3 p-3 text-white d-flex align-items-center justify-content-between"
                         style="width: 200px;">
                         <div class="fw-bold font-sm">1. Add Teachers</div>
-                        <a href="coming-soon.php?m=Teachers" class="btn btn-light btn-sm rounded text-danger border-0">GO</a>
+                        <a href="teachers.php"
+                            class="btn btn-light btn-sm rounded text-danger border-0">GO</a>
                     </div>
                     <div class="gradient-blue rounded-3 p-3 text-white d-flex align-items-center justify-content-between"
                         style="width: 200px;">
                         <div class="fw-bold font-sm">2. Create Classes</div>
-                        <a href="coming-soon.php?m=Classes" class="btn btn-light btn-sm rounded text-primary border-0">GO</a>
+                        <a href="classes.php"
+                            class="btn btn-light btn-sm rounded text-primary border-0">GO</a>
                     </div>
                     <div class="gradient-blue rounded-3 p-3 text-white d-flex align-items-center justify-content-between"
                         style="width: 200px;">
                         <div class="fw-bold font-sm">3. Student Register</div>
-                        <a href="student-registry.php" class="btn btn-light btn-sm rounded text-primary border-0">GO</a>
+                        <a href="students.php" class="btn btn-light btn-sm rounded text-primary border-0">GO</a>
                     </div>
                 </div>
             </div>
@@ -143,7 +146,7 @@
                 <div class="col-md-3">
                     <div class="stat-card p-3 rounded-4 d-flex justify-content-between bg-white shadow-sm">
                         <div>
-                            <div class="text-muted font-sm mb-1">Registry students</div>
+                            <div class="text-muted font-sm mb-1">students</div>
                             <h3 class="fw-bold mb-0" id="statStudents">—</h3>
                         </div>
                         <div class="icon-circle text-white d-flex justify-content-center align-items-center bg-danger rounded-circle"
@@ -259,111 +262,110 @@
     <script src="assets/js/app.js?v=6"></script>
 
     <script>
-    document.addEventListener('DOMContentLoaded', async function() {
-        // --- 1. User Initialization ---
-        try {
-            const userStr = localStorage.getItem('user');
-            const userNameDisplay = document.getElementById('userNameDisplay');
-            const userAvatar = document.getElementById('userAvatar');
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const userStr = localStorage.getItem('user');
+                const userNameDisplay = document.getElementById('userNameDisplay');
+                const userAvatar = document.getElementById('userAvatar');
 
-            if (userStr) {
-                const user = JSON.parse(userStr);
-                userNameDisplay.textContent = (user.name || "Admin") + "'s School";
-                userAvatar.src =
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Admin')}&background=f1f5f9&color=475569`;
-            } else {
-                userNameDisplay.textContent = "Admin's School";
+                if (userStr) {
+                    const user = JSON.parse(userStr);
+                    userNameDisplay.textContent = (user.name || "Admin") + "'s School";
+                    userAvatar.src =
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Admin')}&background=f1f5f9&color=475569`;
+                } else {
+                    userNameDisplay.textContent = "Admin's School";
+                }
+            } catch (e) {
+                console.error(e);
             }
-        } catch (e) {
-            console.error(e);
-        }
 
-        let regCount = 2992;
-        try {
-            const st = await apiFetch('/stats/dashboard');
-            if (st && st.success && st.data) {
-                const d = st.data;
-                regCount = typeof d.student_registry_count === 'number' ? d.student_registry_count : regCount;
-                document.getElementById('statStudents').textContent = d.student_registry_count.toLocaleString();
-                document.getElementById('statTeachers').textContent = d.teachers_count.toLocaleString();
-                document.getElementById('statClasses').textContent = d.classes_count.toLocaleString();
+            let regCount = 2992;
+            try {
+                const st = await apiFetch('/stats/dashboard');
+                if (st && st.success && st.data) {
+                    const d = st.data;
+                    regCount = typeof d.student_registry_count === 'number' ? d.student_registry_count :
+                        regCount;
+                    document.getElementById('statStudents').textContent = d.student_registry_count
+                        .toLocaleString();
+                    document.getElementById('statTeachers').textContent = d.teachers_count.toLocaleString();
+                    document.getElementById('statClasses').textContent = d.classes_count.toLocaleString();
+                }
+            } catch (e) {
+                console.error(e);
             }
-        } catch (e) {
-            console.error(e);
-        }
 
 
-        const ctxLine = document.getElementById('enrollmentChart').getContext('2d');
-        new Chart(ctxLine, {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                datasets: [{
-                    label: 'New Students',
-                    data: [400, 1200, 900, 1800, 1500, Math.max(0, regCount)],
-                    borderColor: '#ff4757',
-                    backgroundColor: 'rgba(255, 71, 87, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    borderWidth: 3,
-                    pointRadius: 4,
-                    pointBackgroundColor: '#fff',
-                    pointBorderColor: '#ff4757'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
+            const ctxLine = document.getElementById('enrollmentChart').getContext('2d');
+            new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'New Students',
+                        data: [400, 1200, 900, 1800, 1500, Math.max(0, regCount)],
+                        borderColor: '#ff4757',
+                        backgroundColor: 'rgba(255, 71, 87, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#ff4757'
+                    }]
                 },
-                scales: {
-                    y: {
-                        grid: {
-                            borderDash: [5, 5]
-                        },
-                        ticks: {
-                            font: {
-                                size: 11
-                            }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
                         }
                     },
-                    x: {
-                        grid: {
+                    scales: {
+                        y: {
+                            grid: {
+                                borderDash: [5, 5]
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+            const ctxDoughnut = document.getElementById('distributionChart').getContext('2d');
+            new Chart(ctxDoughnut, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Primary', 'Secondary'],
+                    datasets: [{
+                        data: [45, 55],
+                        backgroundColor: ['#4d94ff', '#ff4d6b'],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    cutout: '75%',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
                             display: false
                         }
                     }
                 }
-            }
+            });
         });
-
-        // --- 3. Doughnut Chart ---
-        const ctxDoughnut = document.getElementById('distributionChart').getContext('2d');
-        new Chart(ctxDoughnut, {
-            type: 'doughnut',
-            data: {
-                labels: ['Primary', 'Secondary'],
-                datasets: [{
-                    data: [45, 55],
-                    backgroundColor: ['#4d94ff', '#ff4d6b'],
-                    borderWidth: 0,
-                    hoverOffset: 10
-                }]
-            },
-            options: {
-                cutout: '75%',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
-            }
-        });
-    });
     </script>
 </body>
 
