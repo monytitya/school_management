@@ -36,13 +36,16 @@ class ClassController {
         AuthMiddleware::authorize($user, ['admin']);
         $body = $this->getBody();
         $name = $body['class_name'] ?? $body['name'] ?? '';
-        $grade = $body['grade_level'] ?? '';
-        if (empty($name) || empty($grade)) Response::error('Name and Grade Level required.', 422);
+        
+        if (empty($name)) Response::error('Class Name is required.', 422);
 
         $id = $this->classModel->create([
-            'class_name' => $name, 'grade_level' => $grade,
+            'class_name' => $name, 
+            'stage_id' => $body['stage_id'] ?? null,
+            'section_id' => $body['section_id'] ?? null,
             'teacher_id' => $body['teacher_id'] ?? null,
-            'academic_year' => $body['academic_year'] ?? date('Y') . '-' . (date('Y') + 1)
+            'subject_id' => $body['subject_id'] ?? null,
+            'classroom_id' => $body['classroom_id'] ?? null
         ]);
         Response::success($this->classModel->findById($id), 'Class created.', 201);
     }
@@ -56,9 +59,11 @@ class ClassController {
         $body = $this->getBody();
         $this->classModel->update($id, [
             'class_name' => $body['class_name'] ?? $body['name'] ?? $c['class_name'],
-            'grade_level' => $body['grade_level'] ?? $c['grade_level'],
+            'stage_id' => $body['stage_id'] ?? $c['stage_id'],
+            'section_id' => $body['section_id'] ?? $c['section_id'],
             'teacher_id' => $body['teacher_id'] ?? $c['teacher_id'],
-            'academic_year' => $body['academic_year'] ?? $c['academic_year']
+            'subject_id' => $body['subject_id'] ?? $c['subject_id'],
+            'classroom_id' => $body['classroom_id'] ?? $c['classroom_id']
         ]);
         Response::success($this->classModel->findById($id), 'Updated.');
     }
@@ -68,6 +73,22 @@ class ClassController {
         AuthMiddleware::authorize($user, ['admin']);
         $this->classModel->delete((int)$id);
         Response::success(null, 'Deleted.');
+    }
+
+    public function metadata(): void {
+        $user = AuthMiddleware::authenticate();
+        $db = Database::connect();
+        $stages = $db->query("SELECT stage_id as id, stage_name as name FROM stages")->fetchAll();
+        $sections = $db->query("SELECT section_id as id, section_name as name FROM sections")->fetchAll();
+        $classrooms = $db->query("SELECT classroom_id as id, room_name as name FROM classrooms")->fetchAll();
+        $subjects = $db->query("SELECT subject_id as id, title as name FROM subjects")->fetchAll();
+        
+        Response::success([
+            'stages' => $stages,
+            'sections' => $sections,
+            'classrooms' => $classrooms,
+            'subjects' => $subjects
+        ]);
     }
 
     private function getBody(): array {

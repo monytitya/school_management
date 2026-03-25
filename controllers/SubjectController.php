@@ -30,13 +30,10 @@ class SubjectController {
         AuthMiddleware::authorize($user, ['admin']);
         $body = $this->getBody();
         $name = $body['subject_name'] ?? $body['name'] ?? '';
-        $code = strtoupper($body['subject_code'] ?? $body['code'] ?? '');
-        if (empty($name) || empty($code)) Response::error('Name and Code required.', 422);
-        if ($this->subjectModel->codeExists($code)) Response::error('Code already exists.', 409);
+        if (empty($name)) Response::error('Subject Name is required.', 422);
+        
         $id = $this->subjectModel->create([
-            'subject_name' => $name, 'subject_code' => $code,
-            'class_id' => $body['class_id']   ?? null,
-            'teacher_id' => $body['teacher_id'] ?? null
+            'name' => $name
         ]);
         Response::success($this->subjectModel->findById($id), 'Subject created.', 201);
     }
@@ -47,10 +44,7 @@ class SubjectController {
         $id = (int)$id; $s = $this->subjectModel->findById($id);
         if (!$s) Response::notFound(); $body = $this->getBody();
         $this->subjectModel->update($id, [
-            'subject_name' => $body['subject_name'] ?? $body['name'] ?? $s['subject_name'],
-            'subject_code' => strtoupper($body['subject_code'] ?? $body['code'] ?? $s['subject_code']),
-            'class_id' => $body['class_id']   ?? $s['class_id'],
-            'teacher_id' => $body['teacher_id'] ?? $s['teacher_id']
+            'name' => $body['subject_name'] ?? $body['name'] ?? $s['name']
         ]);
         Response::success($this->subjectModel->findById($id), 'Updated.');
     }
