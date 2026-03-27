@@ -17,22 +17,30 @@ class StudentRegistryModel
 
     public function getAll(array $filters = []): array
     {
-        $sql = "SELECT * FROM {$this->table} WHERE 1=1";
+        $sql = "SELECT t.*, 
+                       sch.school_title AS school_name,
+                       stg.stage_name AS stage_label,
+                       sec.section_name AS section_label
+                FROM {$this->table} t
+                LEFT JOIN schools sch ON t.school_id = sch.school_id
+                LEFT JOIN stages stg ON t.stage_id = stg.stage_id
+                LEFT JOIN sections sec ON t.section_id = sec.section_id
+                WHERE 1=1";
         $params = [];
 
         if (!empty($filters['search'])) {
-            $sql .= ' AND (student_full_name LIKE ? OR student_code LIKE ? OR email LIKE ?)';
+            $sql .= ' AND (t.student_full_name LIKE ? OR t.student_code LIKE ? OR t.email LIKE ?)';
             $q = '%' . $filters['search'] . '%';
             $params[] = $q;
             $params[] = $q;
             $params[] = $q;
         }
         if (isset($filters['school_id']) && $filters['school_id'] !== '' && $filters['school_id'] !== null) {
-            $sql .= ' AND school_id = ?';
+            $sql .= ' AND t.school_id = ?';
             $params[] = (int) $filters['school_id'];
         }
 
-        $sql .= ' ORDER BY student_full_name ASC';
+        $sql .= ' ORDER BY t.student_full_name ASC';
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll();

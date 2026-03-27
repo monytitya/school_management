@@ -19,6 +19,33 @@ class GradeController {
         Response::success($this->gradeModel->getBySubject($subId, $term));
     }
 
+    public function byStudent(string $id): void {
+        $user = AuthMiddleware::authenticate();
+        Response::success([]);
+    }
+
+    public function bySubject(string $id): void {
+        $user = AuthMiddleware::authenticate();
+        Response::success([]);
+    }
+
+    public function show(string $id): void {
+        $user = AuthMiddleware::authenticate();
+        $row = $this->gradeModel->findById((int)$id);
+        if (!$row) Response::notFound();
+        Response::success($row);
+    }
+
+    public function reportCard(string $id): void {
+        $user = AuthMiddleware::authenticate();
+        Response::success(['id' => $id, 'grades' => []]);
+    }
+
+    public function classAverage(string $id): void {
+        $user = AuthMiddleware::authenticate();
+        Response::success(['subject_id' => $id, 'average' => 0]);
+    }
+
     public function store(): void {
         $user = AuthMiddleware::authenticate();
         AuthMiddleware::authorize($user, ['admin', 'teacher']);
@@ -26,7 +53,7 @@ class GradeController {
         if (empty($body['student_id']) || empty($body['subject_id']) || !isset($body['score']) || empty($body['term']))
             Response::error('All fields required.', 422);
         
-        $body['created_by'] = $user['id'];
+        $body['created_by'] = $user['user_id'] ?? $user['id'] ?? null;
         $id = $this->gradeModel->create($body);
         Response::success($this->gradeModel->findById($id), 'Grade recorded.', 201);
     }

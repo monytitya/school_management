@@ -8,6 +8,8 @@ require_once __DIR__ . '/../controllers/AttendanceController.php';
 require_once __DIR__ . '/../controllers/GradeController.php';
 require_once __DIR__ . '/../controllers/StudentRegistryController.php';
 require_once __DIR__ . '/../controllers/StatsController.php';
+require_once __DIR__ . '/../controllers/SchoolController.php';
+require_once __DIR__ . '/../controllers/ClassroomController.php';
 
 
 function registerStudentRoutes($router): void
@@ -63,8 +65,7 @@ function registerAttendanceRoutes(Router $router): void
     $ctrl = new AttendanceController();
     $router->add('GET', '/attendance', fn() => $ctrl->index());
     $router->add('GET', '/attendance/student/:id', fn($id) => $ctrl->byStudent($id));
-    $router->add('POST', '/attendance', fn() => $ctrl->store());
-    $router->add('POST', '/attendance/bulk', fn() => $ctrl->bulk());
+    $router->add('POST', '/attendance/bulk', fn() => $ctrl->bulkRecord());
     $router->add('DELETE', '/attendance/:id', fn($id) => $ctrl->destroy($id));
 }
 
@@ -85,6 +86,7 @@ function registerStudentRegistryRoutes(Router $router): void
 {
     $ctrl = new StudentRegistryController();
     $router->add('GET', '/student-registry', fn() => $ctrl->index());
+    $router->add('GET', '/student-registry/metadata', fn() => $ctrl->metadata());
     $router->add('GET', '/student-registry/:id', fn($id) => $ctrl->show($id));
     $router->add('POST', '/student-registry', fn() => $ctrl->store());
     $router->add('PUT', '/student-registry/:id', fn($id) => $ctrl->update($id));
@@ -95,4 +97,24 @@ function registerStatsRoutes(Router $router): void
 {
     $ctrl = new StatsController();
     $router->add('GET', '/stats/dashboard', fn() => $ctrl->dashboard());
+}
+
+function registerSchoolRoutes(Router $router): void
+{
+    $ctrl = new SchoolController();
+    $router->add('GET', '/schools', fn() => $ctrl->index());
+    $router->add('GET', '/schools/:id', fn($id) => $ctrl->show($id));
+    $router->add('POST', '/schools', fn() => $ctrl->store());
+    $router->add('PUT', '/schools/:id', fn($id) => $ctrl->update($id));
+    $router->add('DELETE', '/schools/:id', fn($id) => $ctrl->destroy($id));
+}
+
+function registerClassroomRoutes(Router $router): void
+{
+    $ctrl = new ClassroomController();
+    $router->add('GET', '/classrooms', fn() => $ctrl->index());
+    $router->add('GET', '/classrooms/:id', fn($id) => $ctrl->show($id));
+    $router->add('POST', '/classrooms', fn() => $ctrl->store());
+    $router->add('PUT', '/classrooms/:id', fn($id) => $ctrl->update($id));
+    $router->add('DELETE', '/classrooms/:id', fn($id) => $ctrl->destroy($id));
 }

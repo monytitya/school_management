@@ -169,20 +169,23 @@
                                 <label class="form-label small">Email</label>
                                 <input type="email" class="form-control rounded-3" name="email" id="field_email">
                             </div>
-                            <div class="col-md-2">
-                                <label class="form-label small">School ID</label>
-                                <input type="number" class="form-control rounded-3" name="school_id"
-                                    id="field_school_id" min="0">
+                            <div class="col-md-6">
+                                <label class="form-label small">School</label>
+                                <select class="form-select rounded-3" name="school_id" id="field_school_id">
+                                    <option value="">— Select School —</option>
+                                </select>
                             </div>
-                            <div class="col-md-2">
-                                <label class="form-label small">Stage ID</label>
-                                <input type="number" class="form-control rounded-3" name="stage_id" id="field_stage_id"
-                                    min="0">
+                            <div class="col-md-3">
+                                <label class="form-label small">Grade (Stage)</label>
+                                <select class="form-select rounded-3" name="stage_id" id="field_stage_id">
+                                    <option value="">— Select Grade —</option>
+                                </select>
                             </div>
-                            <div class="col-md-2">
-                                <label class="form-label small">Section ID</label>
-                                <input type="number" class="form-control rounded-3" name="section_id"
-                                    id="field_section_id" min="0">
+                            <div class="col-md-3">
+                                <label class="form-label small">Section</label>
+                                <select class="form-select rounded-3" name="section_id" id="field_section_id">
+                                    <option value="">— Select Sec —</option>
+                                </select>
                             </div>
                         </div>
                     </form>
@@ -276,13 +279,13 @@
                 const rows = res.data || [];
                 if (!rows.length) {
                     bodyEl.innerHTML = '<tr><td colspan="' + colCount +
-                        '" class="text-center py-4 text-muted">No records yet. Add students from the database or use “Add student” (admin).</td></tr>';
+                        '" class="text-center py-4 text-muted">No records yet.</td></tr>';
                     return;
                 }
                 bodyEl.innerHTML = rows.map(r => {
                     const actions = canEdit ?
                         `<button type="button" class="btn btn-sm btn-outline-primary me-1 btn-edit" data-id="${r.student_id}">Edit</button>
-                   <button type="button" class="btn btn-sm btn-outline-danger btn-del" data-id="${r.student_id}">Delete</button>` :
+                    <button type="button" class="btn btn-sm btn-outline-danger btn-del" data-id="${r.student_id}">Delete</button>` :
                         '';
                     const actionCell = canEdit ? `<td class="text-end">${actions}</td>` : '';
                     return `<tr>
@@ -293,9 +296,9 @@
                 <td>${esc(r.dob || '—')}</td>
                 <td>${esc(r.email || '—')}</td>
                 <td>${esc(r.phone || '—')}</td>
-                <td>${r.school_id != null ? esc(r.school_id) : '—'}</td>
-                <td>${r.stage_id != null ? esc(r.stage_id) : '—'}</td>
-                <td>${r.section_id != null ? esc(r.section_id) : '—'}</td>
+                <td>${esc(r.school_name || '—')}</td>
+                <td>${esc(r.stage_label || '—')}</td>
+                <td>${esc(r.section_label || '—')}</td>
                 ${actionCell}
             </tr>`;
                 }).join('');
@@ -382,6 +385,17 @@
                 if (e.key === 'Enter') loadList();
             });
 
+            async function loadMetadata() {
+                const res = await apiFetch('/student-registry/metadata');
+                if (res && res.success) {
+                    const m = res.data;
+                    document.getElementById('field_school_id').innerHTML += m.schools.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+                    document.getElementById('field_stage_id').innerHTML += m.stages.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+                    document.getElementById('field_section_id').innerHTML += m.sections.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+                }
+            }
+
+            loadMetadata();
             loadList();
         })();
     </script>

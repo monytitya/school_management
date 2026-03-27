@@ -63,7 +63,7 @@ class ClassModel {
         $classroomId = !empty($data['classroom_id']) ? (int)$data['classroom_id'] : null;
 
         $stmt->execute([
-            $data['class_name']  ?? $data['name'],
+            $data['class_name'],
             $stageId,
             $sectionId,
             $teacherId,
@@ -85,7 +85,7 @@ class ClassModel {
         $classroomId = !empty($data['classroom_id']) ? (int)$data['classroom_id'] : null;
 
         $stmt->execute([
-            $data['class_name']  ?? $data['name'],
+            $data['class_name'],
             $stageId,
             $sectionId,
             $teacherId,
@@ -105,7 +105,7 @@ class ClassModel {
         if (!$c || !isset($c['section_id'])) return [];
 
         $stmt = $this->db->prepare(
-            "SELECT s.*, s.student_full_name as student_full_name, s.email FROM students s
+            "SELECT s.*, s.student_full_name as student_full_name, s.student_full_name as name, s.email FROM students s
              WHERE s.section_id = ? ORDER BY s.student_full_name"
         );
         $stmt->execute([$c['section_id']]);

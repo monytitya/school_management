@@ -36,13 +36,20 @@ class ClassController {
         AuthMiddleware::authorize($user, ['admin']);
         $body = $this->getBody();
         $name = $body['class_name'] ?? $body['name'] ?? '';
+        $stageId = $body['stage_id'] ?? null;
+        $sectionId = $body['section_id'] ?? null;
         
         if (empty($name)) Response::error('Class Name is required.', 422);
+        if (empty($stageId)) Response::error('Academic Stage (Grade) is required.', 422);
+        if (empty($sectionId)) Response::error('Section is required.', 422);
+        
+        $stageId = (int)$stageId;
+        $sectionId = (int)$sectionId;
 
         $id = $this->classModel->create([
             'class_name' => $name, 
-            'stage_id' => $body['stage_id'] ?? null,
-            'section_id' => $body['section_id'] ?? null,
+            'stage_id' => $stageId,
+            'section_id' => $sectionId,
             'teacher_id' => $body['teacher_id'] ?? null,
             'subject_id' => $body['subject_id'] ?? null,
             'classroom_id' => $body['classroom_id'] ?? null
@@ -57,13 +64,21 @@ class ClassController {
         $c = $this->classModel->findById($id);
         if (!$c) Response::notFound();
         $body = $this->getBody();
+        $name = $body['class_name'] ?? $body['name'] ?? $c['class_name'];
+        $stageId = !empty($body['stage_id']) ? (int)$body['stage_id'] : $c['stage_id'];
+        $sectionId = !empty($body['section_id']) ? (int)$body['section_id'] : $c['section_id'];
+
+        if (empty($name)) Response::error('Class Name cannot be empty.', 422);
+        if (empty($stageId)) Response::error('Academic Stage is required.', 422);
+        if (empty($sectionId)) Response::error('Section is required.', 422);
+
         $this->classModel->update($id, [
-            'class_name' => $body['class_name'] ?? $body['name'] ?? $c['class_name'],
-            'stage_id' => $body['stage_id'] ?? $c['stage_id'],
-            'section_id' => $body['section_id'] ?? $c['section_id'],
+            'class_name' => $name,
+            'stage_id' => $stageId,
+            'section_id' => $sectionId,
             'teacher_id' => $body['teacher_id'] ?? $c['teacher_id'],
-            'subject_id' => $body['subject_id'] ?? $c['subject_id'],
-            'classroom_id' => $body['classroom_id'] ?? $c['classroom_id']
+            'subject_id' => array_key_exists('subject_id', $body) ? $body['subject_id'] : $c['subject_id'],
+            'classroom_id' => array_key_exists('classroom_id', $body) ? $body['classroom_id'] : $c['classroom_id']
         ]);
         Response::success($this->classModel->findById($id), 'Updated.');
     }

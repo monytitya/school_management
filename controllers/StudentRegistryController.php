@@ -27,6 +27,22 @@ class StudentRegistryController
         Response::success($rows, 'Student registry retrieved.');
     }
 
+    public function metadata(): void
+    {
+        $user = AuthMiddleware::authenticate();
+        $db = Database::connect();
+        
+        $schools = $db->query("SELECT school_id as id, school_title as name FROM schools")->fetchAll();
+        $stages = $db->query("SELECT stage_id as id, stage_name as name FROM stages")->fetchAll();
+        $sections = $db->query("SELECT section_id as id, section_name as name FROM sections")->fetchAll();
+
+        Response::success([
+            'schools' => $schools,
+            'stages' => $stages,
+            'sections' => $sections
+        ]);
+    }
+
     public function show(string $id): void
     {
         $user = AuthMiddleware::authenticate();

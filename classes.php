@@ -184,6 +184,13 @@
                 </div>
             </header>
 
+            <div id="errorBanner" class="alert alert-danger d-none border-0 rounded-4 shadow-sm py-3 mb-4 mx-auto" style="max-width: 900px;">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span id="errorText"></span>
+                </div>
+            </div>
+
             <div class="form-container" id="formView">
                 <div class="premium-card">
                     <div class="d-flex align-items-center justify-content-between mb-4">
@@ -270,7 +277,6 @@
             const form = document.getElementById('classForm');
             const btnSave = document.getElementById('btnSave');
             const overlay = document.getElementById('loadingOverlay');
-            
             const stageSelect = document.getElementById('field_stage_id');
             const sectionSelect = document.getElementById('field_section_id');
             const teacherSelect = document.getElementById('field_teacher_id');
@@ -282,6 +288,25 @@
             
             document.getElementById('userNameDisplay').textContent = (user.name || 'Admin') + "'s School";
             document.getElementById('userAvatar').src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name || 'U') + '&background=ff4757&color=fff&bold=true';
+            const fieldName = document.getElementById('field_class_name');
+            fieldName.oninput = () => {
+                const val = fieldName.value.trim().toUpperCase();
+                if (!val) return;
+
+                const numMatch = val.match(/\b(1[0-2]|[1-9])\b/);
+                if (numMatch && !document.getElementById('field_stage_id').value) {
+                    const stageNum = numMatch[0];
+                    const opt = Array.from(stageSelect.options).find(o => o.text.includes(stageNum));
+                    if (opt) stageSelect.value = opt.value;
+                }
+
+                const secMatch = val.match(/\b([A-D])\b/);
+                if (secMatch && !document.getElementById('field_section_id').value) {
+                    const secLet = secMatch[0];
+                    const opt = Array.from(sectionSelect.options).find(o => o.text.trim().toUpperCase() === secLet);
+                    if (opt) sectionSelect.value = opt.value;
+                }
+            };
 
             function showLoader() { overlay.classList.remove('d-none'); }
             function hideLoader() { overlay.classList.add('d-none'); }
@@ -393,11 +418,17 @@
                     classroom_id: document.getElementById('field_classroom_id').value || null
                 };
 
+                const errorEl = document.getElementById('errorBanner');
+                const errorText = document.getElementById('errorText');
+
                 if (!payload.class_name || !payload.stage_id || !payload.section_id) {
-                    alert('Class Name, Stage, and Section are mandatory.');
+                    errorText.textContent = 'Class Name, Stage, and Section are mandatory fields.';
+                    errorEl.classList.remove('d-none');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                     return;
                 }
 
+                errorEl.classList.add('d-none');
                 showLoader();
                 try {
                     const res = await apiFetch(path, { method, body: JSON.stringify(payload) });
@@ -405,7 +436,10 @@
                         resetForm();
                         toggleView('list');
                         loadGrid();
-                    } else alert(res.message || 'Save failed');
+                    } else {
+                        errorText.textContent = res.message || 'An error occurred during save.';
+                        errorEl.classList.remove('d-none');
+                    }
                 } finally { hideLoader(); }
             };
 

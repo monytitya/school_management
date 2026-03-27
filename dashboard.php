@@ -89,8 +89,8 @@ include __DIR__ . '/partials/sidebar.php'; ?>
             <header class="d-flex justify-content-between align-items-center mb-4">
                 <div class="d-flex align-items-center">
                     <h5 class="mb-0 fw-bold me-2 text-dark" id="userNameDisplay">Loading...</h5>
-                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded px-2 py-1"
-                        style="font-size: 0.70rem; font-weight: 500;">Basic</span>
+                    <span class="badge bg-danger text-white border border-danger rounded px-2 py-1"
+                        style="font-size: 0.70rem; font-weight: 500;" id="roleBadge">Super Admin</span>
                 </div>
                 <div class="d-flex align-items-center text-muted fw-medium font-sm">
                     <a href="#" class="text-decoration-none text-muted me-4">Notice</a>
@@ -235,22 +235,31 @@ include __DIR__ . '/partials/sidebar.php'; ?>
 
             <div class="row g-3">
                 <div class="col-md-3">
-                    <div class="card border-0 shadow-sm rounded-3 p-3 bg-white d-flex flex-row align-items-center">
+                    <a href="#" class="card border-0 shadow-sm rounded-3 p-3 bg-white text-decoration-none d-flex flex-row align-items-center h-100">
                         <div class="p-2 bg-light rounded-3 me-3 text-danger"><i class="fa-solid fa-bullhorn"></i></div>
                         <div>
-                            <div class="fw-bold font-sm">Send Broadcast</div>
-                            <div class="text-muted" style="font-size: 0.65rem;">Announce to school</div>
+                            <div class="fw-bold font-sm text-dark">Broadcast</div>
+                            <div class="text-muted" style="font-size: 0.65rem;">Send announcements</div>
                         </div>
-                    </div>
+                    </a>
                 </div>
                 <div class="col-md-3">
-                    <div class="card border-0 shadow-sm rounded-3 p-3 bg-white d-flex flex-row align-items-center">
-                        <div class="p-2 bg-light rounded-3 me-3 text-success"><i class="fa-solid fa-link"></i></div>
+                    <a href="student-portal.php" class="card border-0 shadow-sm rounded-3 p-3 bg-white text-decoration-none d-flex flex-row align-items-center h-100">
+                        <div class="p-2 bg-light rounded-3 me-3 text-primary"><i class="fa-solid fa-users-viewfinder"></i></div>
                         <div>
-                            <div class="fw-bold font-sm">Student Portal</div>
-                            <div class="text-muted" style="font-size: 0.65rem;">Access program</div>
+                            <div class="fw-bold font-sm text-dark">Portal View</div>
+                            <div class="text-muted" style="font-size: 0.65rem;">Switch to Student View</div>
                         </div>
-                    </div>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="classrooms.php" class="card border-0 shadow-sm rounded-3 p-3 bg-white text-decoration-none d-flex flex-row align-items-center h-100">
+                        <div class="p-2 bg-light rounded-3 me-3 text-success"><i class="fa-solid fa-door-open"></i></div>
+                        <div>
+                            <div class="fw-bold font-sm text-dark">Facility Manage</div>
+                            <div class="text-muted" style="font-size: 0.65rem;">Rooms & Schools</div>
+                        </div>
+                    </a>
                 </div>
             </div>
 
@@ -273,8 +282,8 @@ include __DIR__ . '/partials/sidebar.php'; ?>
                     userNameDisplay.textContent = (user.name || "Admin") + "'s School";
                     userAvatar.src =
                         `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'Admin')}&background=f1f5f9&color=475569`;
-                } else {
-                    userNameDisplay.textContent = "Admin's School";
+                    
+                    document.getElementById('roleBadge').textContent = user.role.toUpperCase();
                 }
             } catch (e) {
                 console.error(e);

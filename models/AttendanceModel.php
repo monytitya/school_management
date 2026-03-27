@@ -10,12 +10,11 @@ class AttendanceModel {
 
     public function getByClass(int $classId, string $date): array {
         $stmt = $this->db->prepare(
-            "SELECT a.*, u.name AS student_name, s.student_code AS student_code
+            "SELECT a.*, s.student_full_name AS student_name, s.student_code AS student_code
              FROM attendance a
              JOIN students s ON a.student_id = s.student_id
-             JOIN users u ON s.user_id = u.id
              WHERE a.class_id = ? AND a.date = ?
-             ORDER BY u.name ASC"
+             ORDER BY s.student_full_name ASC"
         );
         $stmt->execute([$classId, $date]);
         return $stmt->fetchAll();

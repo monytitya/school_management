@@ -42,6 +42,8 @@ registerAttendanceRoutes($router);
 registerGradeRoutes($router);
 registerStudentRegistryRoutes($router);
 registerStatsRoutes($router);
+registerSchoolRoutes($router);
+registerClassroomRoutes($router);
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 

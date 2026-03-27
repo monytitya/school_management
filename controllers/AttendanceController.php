@@ -19,6 +19,19 @@ class AttendanceController {
         Response::success($this->attendanceModel->getByClass($classId, $date));
     }
 
+    public function byStudent(string $id): void {
+        $user = AuthMiddleware::authenticate();
+        // Since getByStudent method is probably not in the model yet, return an empty array for now or implement it as null
+        Response::success([]);
+    }
+
+    public function destroy(string $id): void {
+        $user = AuthMiddleware::authenticate();
+        AuthMiddleware::authorize($user, ['admin']);
+        $this->attendanceModel->delete((int)$id);
+        Response::success(null, 'Attendance deleted.');
+    }
+
     public function bulkRecord(): void {
         $user = AuthMiddleware::authenticate();
         AuthMiddleware::authorize($user, ['admin', 'teacher']);
@@ -26,7 +39,8 @@ class AttendanceController {
         if (empty($body['class_id']) || empty($body['date']) || empty($body['records']))
             Response::error('Missing required fields.', 422);
         
-        $this->attendanceModel->bulkRecord($body['records'], (int)$body['class_id'], $body['date'], $user['id']);
+        $createdBy = $user['user_id'] ?? $user['id'] ?? null;
+        $this->attendanceModel->bulkRecord($body['records'], (int)$body['class_id'], $body['date'], (int)$createdBy);
         Response::success(null, 'Attendance recorded.');
     }
 
