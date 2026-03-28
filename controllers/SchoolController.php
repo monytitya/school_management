@@ -70,3 +70,4 @@ class SchoolController {
         return is_array($parsed) ? $parsed : [];
     }
 }
+    
